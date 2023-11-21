@@ -1,5 +1,8 @@
 require("dotenv").config();
-const { Client, IntentsBitField } = require("discord.js");
+const { Client, IntentsBitField, EmbedBuilder } = require("discord.js");
+const { OpenAI } = require("openai");
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_TOKEN });
 
 const client = new Client({
   intents: [
@@ -21,10 +24,67 @@ client.on("messageCreate", (message) => {
     return;
   }
 
+  if (
+    message.content.startsWith(`<@${client.user.id}>`) ||
+    message.content.startsWith(`<@!${client.user.id}>`)
+  ) {
+    message.reply(message.content.substr(message.content.indexOf(" ") + 1));
+    const response = getResponseFromAPI(
+      message.content.substr(message.content.indexOf(" ") + 1)
+    );
+  }
+
   if (message.content === "hello") {
     message.reply("Hey!");
   }
+
+  if (message.content === "embed") {
+    const embed = new EmbedBuilder()
+      .setTitle("Embed title")
+      .setDescription("This is the description")
+      .setColor("Random")
+      .addFields(
+        {
+          name: "Field title",
+          value: "Some random value",
+          inline: true,
+        },
+        {
+          name: "Second Field title",
+          value: "Some random value",
+          inline: true,
+        }
+      );
+
+    message.channel.send({ embeds: [embed] });
+  }
 });
+
+async function getResponseFromAPI(content) {
+  // const completion = await openai.chat.completions.create({
+  //   messages: [{ role: "system", content: `${content}` }],
+  //   model: "gpt-3.5-turbo",
+  // });
+  // console.log(completion.choices[0]);
+  try {
+    const completion = await openai.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: "Who won the world series in 2020?" },
+        {
+          role: "assistant",
+          content: "The Los Angeles Dodgers won the World Series in 2020.",
+        },
+        { role: "user", content: "Where was it played?" },
+      ],
+      model: "gpt-3.5-turbo",
+    });
+
+    console.log(completion.choices[0]);
+  } catch (error) {
+    console.log(`${error}`);
+  }
+}
 
 client.on("interactionCreate", (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -35,6 +95,34 @@ client.on("interactionCreate", (interaction) => {
 
   if (interaction.commandName === "ping") {
     interaction.reply("Pong!");
+  }
+
+  if (interaction.commandName === "add") {
+    const num1 = interaction.options.get("first-number").value;
+    const num2 = interaction.options.get("second-number").value;
+
+    interaction.reply(`The sum is ${num1 + num2}`);
+  }
+
+  if (interaction.commandName === "embed") {
+    const embed = new EmbedBuilder()
+      .setTitle("Embed title")
+      .setDescription("This is the description")
+      .setColor("Random")
+      .addFields(
+        {
+          name: "Field title",
+          value: "Some random value",
+          inline: true,
+        },
+        {
+          name: "Second Field title",
+          value: "Some random value",
+          inline: true,
+        }
+      );
+
+    interaction.reply({ embeds: [embed] });
   }
 });
 
