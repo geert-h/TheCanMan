@@ -21,16 +21,12 @@ const commands = [
     ],
   },
   {
-    name: "hey",
-    description: "Replies with hey!",
-  },
-  {
     name: "ping",
     description: "pong!",
   },
   {
-    name: "embed",
-    description: "Sends an embed!",
+    name: "who-am-i",
+    description: "sends information about the Can Man",
   },
 ];
 
@@ -54,3 +50,5 @@ const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
     );
   }
 })();
+
+module.exports = { commands };

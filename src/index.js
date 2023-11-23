@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { Client, IntentsBitField, EmbedBuilder } = require("discord.js");
 const { OpenAI } = require("openai");
+const { commands } = require("./register-commands.js");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_TOKEN });
 
@@ -20,17 +21,18 @@ client.on("ready", (c) => {
 client.on("messageCreate", (message) => {
   console.log(message);
 
-  if (message.author.bot) {
-    return;
-  }
+  const validServer = validServerCheck(message.guildId);
+
+  if (!validServer) return;
+
+  if (message.author.bot) return;
 
   if (
     message.content.startsWith(`<@${client.user.id}>`) ||
     message.content.startsWith(`<@!${client.user.id}>`)
   ) {
-    message.reply(message.content.substr(message.content.indexOf(" ") + 1));
-    const response = getResponseFromAPI(
-      message.content.substr(message.content.indexOf(" ") + 1)
+    message.reply(
+      message.content.substr(message.content.indexOf(" ") + 1) + "!"
     );
   }
 
@@ -38,14 +40,14 @@ client.on("messageCreate", (message) => {
     message.reply("Hey!");
   }
 
-  if (message.content === "embed") {
+  if (message.content === "who-am-i") {
     const embed = new EmbedBuilder()
-      .setTitle("Embed title")
+      .setTitle("The Can Man")
       .setDescription("This is the description")
       .setColor("Random")
       .addFields(
         {
-          name: "Field title",
+          name: "Find me on GitHub",
           value: "Some random value",
           inline: true,
         },
@@ -86,12 +88,14 @@ async function getResponseFromAPI(content) {
   }
 }
 
-client.on("interactionCreate", (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+function validServerCheck(givenChannelId) {
+  return givenChannelId === process.env.GUILD_ID;
+}
 
-  if (interaction.commandName === "hey") {
-    interaction.reply("hey!");
-  }
+client.on("interactionCreate", (interaction) => {
+  if (!validServerCheck(interaction.guildId)) return;
+
+  if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "ping") {
     interaction.reply("Pong!");
