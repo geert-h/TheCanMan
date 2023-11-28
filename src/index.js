@@ -27,6 +27,8 @@ client.on("messageCreate", (message) => {
 
   if (message.author.bot) return;
 
+  handleKlachtenKanaal(message);
+
   if (
     message.content.startsWith(`<@${client.user.id}>`) ||
     message.content.startsWith(`<@!${client.user.id}>`)
@@ -86,6 +88,33 @@ async function getResponseFromAPI(content) {
   } catch (error) {
     console.log(`${error}`);
   }
+}
+
+function handleKlachtenKanaal(message) {
+  const isklachtenKanaal = isKlachtenKanaal(message.channelId);
+  if (!isklachtenKanaal) return;
+  const permittedKlachtenKanaalUser = ispermittedKlachtenKanaalUser(
+    message.author.id
+  );
+  if (permittedKlachtenKanaalUser) return;
+
+  message.delete();
+  message.channel.send(`Dat klinkt als kritiek ${message.author.displayName}`);
+}
+
+function isKlachtenKanaal(id) {
+  //testing: 1176269531367342140
+  //klachten: 1178729946194137228
+  return id == 1176269531367342140;
+}
+
+function ispermittedKlachtenKanaalUser(id) {
+  //Geert : 345533521936515082
+  //Max   : 376329453560791040
+  permittedUserIds = ["345533521936515082", "376329453560791040"];
+  console.log(id);
+  console.log(permittedUserIds.includes(id));
+  return permittedUserIds.includes(id);
 }
 
 function validServerCheck(givenChannelId) {
